@@ -28,7 +28,17 @@ jobs:
       - name: Generate Android project
         run: npx expo prebuild --platform android --non-interactive
 
-      - name: Build debug APK
+      - name: Bundle JavaScript into APK
+        run: |
+          mkdir -p android/app/src/main/assets
+          npx react-native bundle \
+            --platform android \
+            --dev false \
+            --entry-file index.ts \
+            --bundle-output android/app/src/main/assets/index.android.bundle \
+            --assets-dest android/app/src/main/res
+
+      - name: Build APK
         run: cd android && chmod +x gradlew && ./gradlew assembleDebug --no-daemon
         env:
           ANDROID_HOME: /usr/local/lib/android/sdk
