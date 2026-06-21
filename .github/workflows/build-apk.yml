@@ -28,17 +28,13 @@ jobs:
       - name: Generate Android project
         run: npx expo prebuild --platform android --non-interactive
 
-      - name: Bundle JavaScript into APK
+      - name: Force release build to use debug signing key
         run: |
-          mkdir -p android/app/src/main/assets
-          npx expo export:embed \
-            --platform android \
-            --entry-file index.ts \
-            --bundle-output android/app/src/main/assets/index.android.bundle \
-            --assets-dest android/app/src/main/res
+          sed -i 's/signingConfig signingConfigs.release/signingConfig signingConfigs.debug/g' \
+            android/app/build.gradle
 
-      - name: Build APK
-        run: cd android && chmod +x gradlew && ./gradlew assembleDebug --no-daemon
+      - name: Build release APK
+        run: cd android && chmod +x gradlew && ./gradlew assembleRelease --no-daemon
         env:
           ANDROID_HOME: /usr/local/lib/android/sdk
 
@@ -46,5 +42,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ioniq5-charge-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          path: android/app/build/outputs/apk/release/app-release.apk
           retention-days: 30
