@@ -5,7 +5,7 @@ on:
 
 jobs:
   build:
-    name: Build APK with EAS
+    name: Build APK
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -16,25 +16,26 @@ jobs:
         with:
           node-version: 22
 
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
       - name: Install dependencies
         run: npm install
 
-      - name: Install EAS CLI
-        run: npm install -g eas-cli
+      - name: Generate Android project
+        run: npx expo prebuild --platform android --non-interactive
 
-      - name: Initialize EAS project
-        run: eas init --non-interactive --force
+      - name: Build debug APK
+        run: cd android && chmod +x gradlew && ./gradlew assembleDebug --no-daemon
         env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          ANDROID_HOME: /usr/local/lib/android/sdk
 
-      - name: Build APK
-        run: eas build --platform android --profile preview --non-interactive --output ./ioniq5-charge.apk
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-
-      - name: Upload APK artifact
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: ioniq5-charge-apk
-          path: ioniq5-charge.apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
